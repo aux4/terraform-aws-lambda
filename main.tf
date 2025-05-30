@@ -30,6 +30,10 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
+data "aws_kms_key" "aws_lambda" {
+  key_id = "alias/aws/lambda"
+}
+
 resource "aws_iam_policy" "lambda_kms_decrypt" {
   name        = "${local.function_name}-kms-decrypt"
   description = "Policy to allow Lambda function to decrypt KMS keys"
@@ -40,7 +44,7 @@ resource "aws_iam_policy" "lambda_kms_decrypt" {
       {
         Effect   = "Allow",
         Action   = "kms:Decrypt",
-        Resource = "arn:aws:kms:*:*:alias/aws/lambda"
+        Resource = data.aws_kms_key.aws_lambda.arn
       }
     ]
   })
