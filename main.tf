@@ -30,6 +30,27 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
+resource "aws_iam_policy" "lambda_kms_decrypt" {
+  name        = "${local.function_name}-kms-decrypt"
+  description = "Policy to allow Lambda function to decrypt KMS keys"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "kms:Decrypt",
+        Resource = "arn:aws:kms:*:*:alias/aws/lambda"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_kms_decrypt_policy" {
+  policy_arn = aws_iam_policy.lambda_kms_decrypt.arn
+  role       = aws_iam_role.lambda_role.name
+}
+
 resource "aws_iam_role_policy_attachment" "lambda_role_policy" {
   for_each = toset(var.function_policies)
 
@@ -56,7 +77,7 @@ resource "aws_lambda_function" "lambda" {
 
   logging_config {
     log_format = "JSON"
-    log_group = aws_cloudwatch_log_group.lambda_log_group.name
+    log_group  = aws_cloudwatch_log_group.lambda_log_group.name
   }
 
   environment {
