@@ -60,6 +60,10 @@ resource "aws_iam_role_policy_attachment" "lambda_role_policy" {
 
   policy_arn = each.value
   role       = aws_iam_role.lambda_role.name
+
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
