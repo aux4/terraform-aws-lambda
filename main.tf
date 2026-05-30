@@ -73,15 +73,27 @@ resource "aws_cloudwatch_log_group" "lambda_log_group" {
 
 resource "aws_lambda_function" "lambda" {
   function_name = local.function_name
-  handler       = "src/function/${var.function_file}.handler"
   role          = aws_iam_role.lambda_role.arn
+  package_type  = var.function_package_type
 
-  runtime     = var.function_runtime
+  # Zip deployment
+  handler          = var.function_package_type == "Zip" ? "src/function/${var.function_file}.handler" : null
+  runtime          = var.function_package_type == "Zip" ? var.function_runtime : null
+  source_code_hash = var.function_package_type == "Zip" ? filebase64sha256(var.function_zip) : null
+  filename         = var.function_package_type == "Zip" ? var.function_zip : null
+
+  # Image deployment
+  image_uri = var.function_package_type == "Image" ? var.function_image_uri : null
+
   memory_size = var.function_memory_size
   timeout     = var.function_timeout
 
-  source_code_hash = filebase64sha256(var.function_zip)
-  filename         = var.function_zip
+  dynamic "ephemeral_storage" {
+    for_each = var.function_ephemeral_storage > 512 ? [var.function_ephemeral_storage] : []
+    content {
+      size = ephemeral_storage.value
+    }
+  }
 
   logging_config {
     log_format = "JSON"

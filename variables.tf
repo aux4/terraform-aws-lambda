@@ -64,3 +64,24 @@ variable "function_log_retention" {
   default     = 14
   nullable    = false
 }
+
+variable "function_package_type" {
+  description = "The deployment package type: Zip or Image"
+  type        = string
+  default     = "Zip"
+  nullable    = false
+}
+
+variable "function_image_uri" {
+  description = "The ECR image URI for Image package type"
+  type        = string
+  default     = ""
+  nullable    = false
+}
+
+variable "function_ephemeral_storage" {
+  description = "The ephemeral storage size in MB (512-10240)"
+  type        = number
+  default     = 512
+  nullable    = false
+}
